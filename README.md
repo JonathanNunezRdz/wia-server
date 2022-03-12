@@ -1,2 +1,2 @@
 # wia-server
- Official server for wia-client
+ Server for wia-client

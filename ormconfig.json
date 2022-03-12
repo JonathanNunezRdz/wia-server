@@ -1,0 +1,7 @@
+{
+	"type": "postgres",
+	"logging": true,
+	"synchronize": true,
+	"entities": ["dist/entities/*.js"],
+	"migrations": ["dist/migration/*.js"]
+}
