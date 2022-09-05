@@ -32,9 +32,7 @@ class Media extends BaseEntity {
 	image: Image;
 
 	@Field(() => [KnownMedia])
-	@OneToMany(() => KnownMedia, (knownMedia) => knownMedia.media, {
-		cascade: true,
-	})
+	@OneToMany(() => KnownMedia, (knownMedia) => knownMedia.media)
 	knownMedias: KnownMedia[];
 
 	@Field(() => Date)

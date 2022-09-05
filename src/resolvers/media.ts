@@ -10,7 +10,6 @@ import {
 	Resolver,
 	UseMiddleware,
 } from 'type-graphql';
-import { LessThan } from 'typeorm';
 import Media from '../entities/Media';
 import isAuth from '../middleware/isAuth';
 import { MediaType, MyContext } from '../utils/types';
@@ -114,22 +113,46 @@ class MediaResolver {
 	async medias(
 		@Arg('limit', () => Int!) limit: number,
 		@Arg('cursor', () => String, { nullable: true }) cursor: string | null,
+		// @Arg('users', () => [Int]) users: number[],
 		@Ctx() { mediaRepository }: MyContext
 	): Promise<PaginatedMedias> {
 		const realLimit = Math.min(50, limit);
 		const realLimitPlusOne = realLimit + 1;
+		// const medias = await mediaRepository.find({
+		// 	where: {
+		// 		createdAt: LessThan(cursor || new Date().toISOString()),
+		// 	},
+		// 	// where: (qb) => {
+		// 	// 	qb.where('media."createdAt" < :cursor', {
+		// 	// 		cursor: cursor || new Date().toISOString(),
+		// 	// 	});
+		// 	// },
+		// 	order: {
+		// 		createdAt: 'DESC',
+		// 	},
+		// 	take: realLimitPlusOne,
+		// 	relations: ['knownMedias', 'knownMedias.user'],
+		// });
+		const medias = await mediaRepository
+			.createQueryBuilder('media')
+			.leftJoinAndSelect('media."knownMedias"', '"knownMedia"')
+			.where('media."createdAt" < :cursor', {
+				cursor: cursor || new Date().toISOString(),
+			})
+			.orderBy('media."createdAt"')
+			.getMany();
 
-		const medias = await mediaRepository.find({
-			where: {
-				createdAt: LessThan(cursor || new Date().toISOString()),
-			},
-			order: {
-				createdAt: 'DESC',
-			},
-			take: realLimitPlusOne,
-			relations: ['knownMedias', 'knownMedias.user'],
+		const sendMedias = medias.slice(0, realLimit).map((media) => {
+			return {
+				...media,
+				knownMedias: media.knownMedias.sort((a, b) => {
+					if (a.knownAt > b.knownAt) return 1;
+					if (a.knownAt < b.knownAt) return -1;
+					return 0;
+				}),
+			} as Media;
 		});
-		const sendMedias = medias.slice(0, realLimit);
+
 		return {
 			medias: sendMedias,
 			hasMore: medias.length === realLimitPlusOne,
@@ -206,7 +229,7 @@ class MediaResolver {
 		@Ctx() { mediaRepository, req }: MyContext
 	): Promise<boolean> {
 		const media = await mediaRepository.findOneOrFail(id, {
-			relations: ['knownMedia'],
+			relations: ['knownMedias', 'knownMedias.user'],
 		});
 
 		if (

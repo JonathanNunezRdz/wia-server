@@ -42,10 +42,8 @@ class User extends BaseEntity {
 	image: Image;
 
 	@Field(() => [KnownMedia])
-	@OneToMany(() => KnownMedia, (knownMedia) => knownMedia.user, {
-		cascade: true,
-	})
-	knownMedia: KnownMedia[];
+	@OneToMany(() => KnownMedia, (knownMedia) => knownMedia.user)
+	knownMedias: KnownMedia[];
 
 	@Field(() => Date)
 	@CreateDateColumn({ type: 'timestamptz' })

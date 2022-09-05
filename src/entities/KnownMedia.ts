@@ -11,7 +11,9 @@ class KnownMedia extends BaseEntity {
 	userId: number;
 
 	@Field(() => User)
-	@ManyToOne(() => User, (user) => user.knownMedia)
+	@ManyToOne(() => User, (user) => user.knownMedias, {
+		onDelete: 'CASCADE',
+	})
 	user: User;
 
 	@Field()
@@ -19,7 +21,10 @@ class KnownMedia extends BaseEntity {
 	mediaId: number;
 
 	@Field(() => Media)
-	@ManyToOne(() => Media, (media) => media.knownMedias)
+	@ManyToOne(() => Media, (media) => media.knownMedias, {
+		cascade: true,
+		onDelete: 'CASCADE',
+	})
 	media: Media;
 
 	@Field(() => Date)
